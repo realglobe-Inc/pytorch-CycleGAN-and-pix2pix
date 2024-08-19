@@ -32,6 +32,7 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import save_images
 from util import html
+from util import util
 
 try:
     import wandb
@@ -67,6 +68,8 @@ if __name__ == '__main__':
     # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
     if opt.eval:
         model.eval()
+
+    AtoB = opt.direction == 'AtoB'
     for i, data in enumerate(dataset):
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
             break
@@ -76,5 +79,11 @@ if __name__ == '__main__':
         img_path = model.get_image_paths()     # get image paths
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
-        save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize, use_wandb=opt.use_wandb)
-    webpage.save()  # save the HTML
+
+        img = util.tensor2im(visuals['fake_B' if AtoB else 'fake_A'])
+        name = os.path.splitext(os.path.basename(img_path[0]))[0]
+        # util.save_image(img, os.path.join(web_dir, name + ".tif"))
+        util.save_image(img, os.path.join(web_dir, name + ".png"))
+
+    #     save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize, use_wandb=opt.use_wandb)
+    # webpage.save()  # save the HTML
